@@ -1,0 +1,54 @@
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #EAEBEC;
+
+  &>main {
+    padding: 16px;
+    min-width: 1024px;
+    max-width: 1440px;
+    width: 100%;
+
+    display: flex;
+    justify-content: space-between;
+    align-self: center;
+    flex-grow: 1;
+  }
+}
+
+svg.icon {
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+  font-size: 16px;
+  vertical-align: -0.1em;
+}
+
+.button {
+  width: 72px;
+  height: 32px;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  background: #ddd;
+  color: #222;
+  text-decoration: none;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  vertical-align: middle;
+  &:hover {
+    box-shadow: 1px 1px 1px hsla(0, 0, 0, .5);
+  }
+  &.primary {
+    background: #02af5f;
+    color: white;
+  }
+  &.small {
+    width: auto;
+    height: 24px;
+    font-size: inherit;
+    padding: 0 1em;
+  }
+}
