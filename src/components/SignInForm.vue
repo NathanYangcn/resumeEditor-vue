@@ -38,6 +38,9 @@
         let {username, password} = this.formData
         AV.User.logIn(username, password).then(() => {
           this.$emit('success', getAVUser())
+          setTimeout(function () {
+            window.location.reload()
+          }, 1000)
         }, (error) => {
           this.errorMessage = getErrorMessage(error)
         })
