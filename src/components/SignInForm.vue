@@ -30,20 +30,21 @@
           username: '',
           password: ''
         },
-        errorMessage: ''
+        errorMessage: '' // 错误提示信息
       }
     },
     methods: {
+      // 用户登录功能
       signIn () {
         let {username, password} = this.formData
         AV.User.logIn(username, password).then(() => {
-          this.$emit('success', getAVUser())
-          setTimeout(function () {
-            window.location.reload()
-          }, 1000)
+          this.$emit('success', getAVUser()) // vue自定义事件，向父组件通信
         }, (error) => {
-          this.errorMessage = getErrorMessage(error)
+          this.errorMessage = getErrorMessage(error) // 获取错误提示信息
         })
+        setTimeout(function () {
+          window.location.reload() // 重载页面，获取数据后自动刷新页面，呈现数据
+        }, 1000)
       }
     }
   }

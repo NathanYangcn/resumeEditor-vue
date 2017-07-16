@@ -1,7 +1,7 @@
 <template>
   <div id="resumePreview">
     <button class="button" @click="save"> 保存 </button>
-    <router-link class="button" to="/preview">preview</router-link>
+    <router-link class="button" to="/preview">预览</router-link>
     <section data-name="profile" v-if="resume.profile && resume.profile.name">
       <h1>
         {{resume.profile.name}}
@@ -77,7 +77,9 @@
       }
     },
     methods: {
+      // 保存编辑功能
       save () {
+        // 提交命令：保存resume数据到后台
         this.$store.dispatch('saveResume')
       }
     }

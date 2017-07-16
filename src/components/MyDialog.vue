@@ -14,10 +14,11 @@
 <script>
   export default {
     name: 'MyDialog',
-    props: ['title', 'visible'],
+    props: ['title', 'visible'], // 子组件需要用到的父组件中变化的参数
     methods: {
+      // vue自定义事件
       close () {
-        this.$emit('close')
+        this.$emit('close') // 子组件向父组件通信：发送自定义事件名称
       }
     }
   }

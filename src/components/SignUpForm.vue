@@ -27,23 +27,23 @@
     data () {
       return {
         formData: {
-          username: '',
-          password: ''
+          username: '', // 用户账号
+          password: ''  // 用户密码
         },
-        errorMessage: ''
+        errorMessage: '' // 错误提示信息
       }
     },
     methods: {
+      // 用户注册功能
       signUp () {
         let {username, password} = this.formData
         var user = new AV.User()
         user.setUsername(username)
         user.setPassword(password)
         user.signUp().then((loginedUser) => {
-          this.$emit('success', getAVUser())
-          console.log(getAVUser())
+          this.$emit('success', getAVUser()) // vue自定义事件，向父组件通信
         }, (error) => {
-          this.errorMessage = getErrorMessage(error)
+          this.errorMessage = getErrorMessage(error) // 获取错误提示信息
         })
       }
     }

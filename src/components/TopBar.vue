@@ -47,12 +47,14 @@
     },
     components: { MyDialog, SignUpForm, SignInForm },
     methods: {
+      // 用户登录：关闭注册或登录面板，提交保存用户信息功能
       signIn (user) {
-        console.log(user)
         this.signUpDialogVisible = false
         this.signInDialogVisible = false
         this.$store.commit('setUser', user)
       },
+
+      // 退出登录：提交命令退出登录
       signOut () {
         AV.User.logOut()
         this.$store.commit('removeUser')

@@ -19,9 +19,7 @@
 
   export default {
     name: 'resume',
-    components: { TopBar, ResumeEditor, ResumePreview },
-    created () {
-    }
+    components: { TopBar, ResumeEditor, ResumePreview }
   }
 </script>
 

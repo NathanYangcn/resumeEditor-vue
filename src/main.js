@@ -10,6 +10,7 @@ import store from './store/index'
 
 Vue.config.productionTip = false
 
+// 使用 i18n 插件，根据设置语言，控制各个属性所对应的展示内容
 Vue.use(VueI18n)
 Vue.config.lang = 'zh_CN'
 Object.keys(locales).forEach(function (lang) {

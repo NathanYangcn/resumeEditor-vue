@@ -6,6 +6,8 @@
 *::after, *::before {
   box-sizing: border-box;
 }
-ol {
+ol,
+ul,
+li {
   list-style: none;
 }

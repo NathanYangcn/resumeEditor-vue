@@ -40,11 +40,11 @@
     name: 'ResumeEditor',
     computed: {
       selected: {
-        get: function () {
+        get: function () { // 计算属性 getter —— 读数据
           return this.$store.state.selected
         },
-        set: function (value) {
-          this.$store.commit('switchTab', value)
+        set: function (value) { // 计算属性 setter —— 写数据
+          this.$store.commit('switchTab', value) // 为了实现单向绑定
         }
       },
       resume () {
@@ -55,15 +55,21 @@
       }
     },
     methods: {
+      // 监听输入表单value的改变，将改变同步到vuex仓库
+      // 为了实现单向绑定，UI事件监听 需配合 :value='value' 实现单向绑定
       changeResumeField (path, value) {
         this.$store.commit('updateResume', {
           path: path,
           value: value
         })
       },
+
+      // 增加一个可填写内容模板功能(单个tab面板的子模块)
       addResumeSubfield (field) {
         this.$store.commit('addResumeSubfield', {field})
       },
+
+      // 删除一个可填写内容模板功能(单个tab面板的子模块)
       removeResumeSubfield (field, index) {
         this.$store.commit('removeResumeSubfield', {field, index})
       }
