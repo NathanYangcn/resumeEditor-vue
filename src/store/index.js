@@ -3,77 +3,94 @@ import Vuex from 'vuex'
 import objectPath from 'object-path'
 import AV from '../lib/leancloud'
 import getAVUser from '../lib/getAVUser'
+import getTime from '../lib/getTime'
 
 Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    selected: 'profile',  // 编辑区 tab切换 当前选中tab
+    curIndex: '', // 当前操作的 resume 在 pool 中 index
+    newResumeFlag: false, // 新建按钮flag
     user: {
-      username: '', // 当前登录用户账号
-      id: '' // 当前登录用户ID
+      username: '', // 账号
+      id: '' // 用户ID
     },
-    resumeConfig: [ // 编辑区 tab切换 所有tab信息
-      {field: 'profile', icon: 'id', keys: ['name', 'city', 'title', 'birthday']},
+    resumeConfig: [ // 编辑区 tab信息
+      {field: 'profile', icon: 'id', type: 'object', keys: ['name', 'city', 'title', 'birthday']},
       {field: 'workHistory', icon: 'work', type: 'array', keys: ['company', 'content']},
       {field: 'education', icon: 'book', type: 'array', keys: ['school', 'content']},
       {field: 'projects', icon: 'heart', type: 'array', keys: ['name', 'content']},
       {field: 'awards', icon: 'cup', type: 'array', keys: ['name', 'content']},
-      {field: 'contacts', icon: 'phone', type: 'array', keys: ['name', 'content']}
+      {field: 'contacts', icon: 'phone', type: 'array', keys: ['name', 'content']},
+      {field: 'brief', keys: ['title', 'author', 'id', 'createdAt']}
     ],
-    resume: {
-      id: '' // 当前简历ID
+    resume: {}, // 当前正在编辑的简历数据
+    resumeSet: {
+      id: '', // 当前简历ID
+      setting: { // 最终数据集合
+        nickname: '', // 昵称
+        profile: '',  // 个人简介
+        sex: '', // 性别
+        age: '', // 年龄
+        edu: '', // 学历
+        job: '' // 工种
+      },
+      pool: [] // 简历池子
     }
   },
   mutations: {
-    // 初始化 Vuex 仓库：包括 1.编辑数据为空 2.存有编辑数据
-    // 将tab切换所要包含的key赋为空值，并将其塞进Vuex仓库
-    // 遍历resumeConfig，然后创建数据结构并塞入resume，组件读取resume数据进行渲染
-    initState (state, payload) {
+    // 初始化：编辑器
+    initEditor (state, payload) { // => initState
       state.resumeConfig.map((item) => {
         if (item.type === 'array') {
-          // state.resume[item.field] = []
           Vue.set(state.resume, item.field, []) // resume[field] 为数组类型
         } else {
-          // state.resume[item.field] = {}
           Vue.set(state.resume, item.field, {}) // resume[field] 为对象类型
           item.keys.map((key) => {
-            // state.resume[item.field][key] = ''
-            Vue.set(state.resume[item.field], key, '')
+            if (item.field === 'brief') {
+              let id = state.user.id
+              let author = state.user.nickname ? state.user.nickname : state.user.username
+              Vue.set(state.resume[item.field], 'title', '')
+              Vue.set(state.resume[item.field], 'createdAt', getTime())
+              Vue.set(state.resume[item.field], 'author', author)
+              Vue.set(state.resume[item.field], 'id', id)
+            } else {
+              Vue.set(state.resume[item.field], key, '')
+            }
           })
         }
       })
-      if (payload) { // 如果存在参数，将参数合并到Vuex仓库中，用于获取本地或后台数据
+      if (payload) { // 合并参数到Vuex，用于获取本地或后台数据
         Object.assign(state, payload)
       }
     },
 
-    // tab切换功能：切换编辑区当前编辑面板
-    switchTab (state, payload) {
-      state.selected = payload
-    },
-
-    // 编辑区-单向绑定：收集表单控件输入，塞入Vuex仓库中
-    // 配合 :value='value' 达成与双向绑定一样的功能
+    // 编辑区-单向绑定
     updateResume (state, {path, value}) {
       objectPath.set(state.resume, path, value)
     },
+    updateResumeTitle (state, {path, value}) {
+      objectPath.set(state.resume.brief, path, value)
+    },
 
-    // 保存用户信息：登录成功后，保存当前用户登录信息
-    // 在vuex中，保存用户账号和ID，作为当前用户已登录状态的标识
+    // 用户已登录状态的标识
     setUser (state, payload) {
       Object.assign(state.user, payload)
     },
 
-    // 退出登录功能：在vuex中，删除当前用户登录信息
-    // HTML中使用 ID 控制是否显示当前已登录用户账号名称
+    // 退出登录
     removeUser (state) {
       // state.user.id = null
       state.user.id = ''
+      state.user.username = ''
     },
 
-    // 增加一个可填写内容模板功能(单个tab面板的子模块)
-    // 举例说明：在编辑区内，工作经历tab下，增加一条可填写的工作经历模板
+    // 更新个人资料
+    setting (state, payload) {
+      Object.assign(state.resumeSet.setting, payload)
+    },
+
+    // 增加一个可编辑内容的子模板
     addResumeSubfield (state, {field}) {
       let empty = {}
       state.resume[field].push(empty)
@@ -82,16 +99,14 @@ export default new Vuex.Store({
       })
     },
 
-    // 删除一个可填写内容模板功能(单个tab面板的子模块)
-    // 举例说明：在编辑区内，工作经历tab下，删除一条可填写的工作经历模板
+    // 删除一个可编辑内容的子模板(
     removeResumeSubfield (state, {field, index}) {
       state.resume[field].splice(index, 1)
     },
 
-    // 设置 resume 的 ID：与后台交互时使用
-    // 主要用于判断该 resume 是否存在，如果不存在则新建数据，如果存在则更新该数据
-    setResumeId (state, { id }) {
-      state.resume.id = id
+    // 主要作用：存储数据到云端时，云端时新建数据表（id 不存在）还是更新数据表（id 存在） - 前后交互【表ID】
+    resumeSetId (state, { id }) {
+      state.resumeSet.id = id
     },
 
     // 设置 resume 数据
@@ -101,32 +116,111 @@ export default new Vuex.Store({
         Vue.set(state.resume, field, resume[field])
       })
       state.resume.id = resume.id
+    },
+
+    // 当用户登录成功后，从后台获取数据，并将数据塞入vuex仓库，最终渲染数据 —— 新
+    setResumeSet (state, resumeSet) {
+      Object.assign(state.resumeSet, resumeSet)
+    },
+
+    // 保存简历到简历池 —— 新
+    saveToPool (state) { // =》 saveinpool
+      if (typeof state.curIndex === 'number') {
+        Object.assign(state.resumeSet.pool[state.curIndex], state.resume)
+        // localStorage.setItem('resumeSet', JSON.parse(state.resumeSet)) // 本地存储
+      }
+    },
+
+    // 新建简历flag
+    closeResumeFlag (state) {
+      state.newResumeFlag = false // 关闭新建按钮flag
+    },
+    openResumeFlag (state) {
+      state.newResumeFlag = true // 打开新建按钮flag
+    },
+
+    // 初始化简历池
+    initPool (state) {
+      Vue.set(state.resumeSet.pool, state.resumeSet.pool.length, {})
+      state.resumeConfig.map((item) => {
+        if (item.type === 'array') {
+          Vue.set(state.resumeSet.pool[state.resumeSet.pool.length - 1], item.field, []) // resume[field] 为数组类型
+        } else {
+          Vue.set(state.resumeSet.pool[state.resumeSet.pool.length - 1], item.field, {}) // resume[field] 为对象类型
+          item.keys.map((key) => {
+            Vue.set(state.resumeSet.pool[state.resumeSet.pool.length - 1][item.field], key, '')
+          })
+        }
+      })
+    },
+
+    // 设置指定简历数据——进入编辑状态——新
+    setEditor (state) {
+      let preResume = state.resumeSet.pool[state.curIndex]
+      state.resumeConfig.map(({field}) => {
+        Vue.set(state.resume, field, preResume[field])
+      })
+    },
+
+    // 删除简历 —— 新
+    removeResume (state, index) {
+      state.resumeSet.pool.splice(index, 1)
+      if (state.curIndex === index) {
+        if ((index > 0) && (index < state.resumeSet.pool.length)) {
+        } else if (index === state.resumeSet.pool.length) {
+          state.curIndex = index - 1
+        } else if (index === 0) {
+          state.curIndex = 0
+        }
+      } else {
+        if ((index > 0) && (index < state.resumeSet.pool.length)) {
+          state.curIndex -= 1
+        } else if (index === state.resumeSet.pool.length) {
+          state.curIndex = state.resumeSet.pool.length
+        } else if (index === 0) {
+          state.curIndex -= 1
+        }
+      }
+    },
+
+    // 新建简历模板序列 —— 新
+    initCurIndex (state) {
+      state.curIndex = state.resumeSet.pool.length
+    },
+    enterCurIndex (state) {
+      state.curIndex = 0
+    },
+
+    // 点击查看简历池中的某个简历
+    checkoutIndex (state, payload) {
+      state.curIndex = payload
+    },
+
+    // 点击查看简历池中的某个简历 —— 新
+    setIndex (state, payload) {
+      state.curIndex = payload
     }
   },
   actions: {
     // 保存resume数据到后台
-    saveResume ({state, commit}, payload) {
-      var Resume = AV.Object.extend('Resume')
-      var resume = new Resume()
-      if (state.resume.id) {
-        resume.id = state.resume.id
+    saveResumeSet ({state, commit}, payload) {
+      var ResumeSet = AV.Object.extend('ResumeSet')
+      var resumeSet = new ResumeSet()
+      if (state.resumeSet.id) {
+        resumeSet.id = state.resumeSet.id // 表 ID
       }
-      resume.set('profile', state.resume.profile)
-      resume.set('workHistory', state.resume.workHistory)
-      resume.set('education', state.resume.education)
-      resume.set('projects', state.resume.projects)
-      resume.set('awards', state.resume.awards)
-      resume.set('contacts', state.resume.contacts)
-      resume.set('owner_id', getAVUser().id)
+      resumeSet.set('setting', state.resumeSet.setting)
+      resumeSet.set('pool', state.resumeSet.pool)
+      resumeSet.set('owner_id', getAVUser().id) // 用户 ID
 
       var acl = new AV.ACL()
       acl.setPublicReadAccess(true)
       acl.setWriteAccess(AV.User.current(), true)
 
-      resume.setACL(acl)
-      resume.save().then(function (response) {
-        if (!state.resume.id) {
-          commit('setResumeId', {id: response.id})
+      resumeSet.setACL(acl)
+      resumeSet.save().then(function (response) {
+        if (!state.resumeSet.id) {
+          commit('resumeSetId', {id: response.id})
         }
       }).catch(function (error) {
         console.log(error)
@@ -135,11 +229,11 @@ export default new Vuex.Store({
 
     // 从后台拉取resume数据
     fetchResume ({commit}, payload) {
-      var query = new AV.Query(('Resume'))
+      var query = new AV.Query(('ResumeSet'))
       query.equalTo('owner_id', getAVUser().id)
-      query.first().then((resume) => {
-        if (resume) {
-          commit('setResume', {id: resume.id, ...resume.attributes})
+      query.first().then((resumeSet) => {
+        if (resumeSet) {
+          commit('setResumeSet', {id: resumeSet.id, ...resumeSet.attributes})
         }
       })
     }

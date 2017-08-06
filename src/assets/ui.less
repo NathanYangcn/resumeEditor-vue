@@ -1,20 +1,12 @@
 #app {
-  display: flex;
-  flex-direction: column;
   height: 100vh;
-  background-color: #EAEBEC;
+  background-color: #fff;
+}
 
-  &>main {
-    padding: 16px;
-    min-width: 1024px;
-    max-width: 1440px;
-    width: 100%;
-
-    display: flex;
-    justify-content: space-between;
-    align-self: center;
-    flex-grow: 1;
-  }
+.layout {
+  width: 100%;
+  min-width: 760px;
+  max-width: 960px;
 }
 
 svg.icon {
@@ -51,4 +43,14 @@ svg.icon {
     font-size: inherit;
     padding: 0 1em;
   }
+}
+
+.font-in-line {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+a {
+  text-decoration: none;
 }

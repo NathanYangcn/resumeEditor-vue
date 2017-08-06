@@ -1,7 +1,11 @@
 <template>
   <div id="resumePreview">
-    <button class="button" @click="save"> 保存 </button>
-    <router-link class="button" to="/preview">预览</router-link>
+    <section data-name="brief" v-if="resume.brief && resume.brief.title">
+      <h1>
+        {{resume.brief.title}}
+      </h1>
+    </section>
+
     <section data-name="profile" v-if="resume.profile && resume.profile.name">
       <h1>
         {{resume.profile.name}}
@@ -70,17 +74,10 @@
 
 <script>
   export default {
-    name: 'ResemePreview',
+    name: 'resumePreview',
     computed: {
       resume () {
         return this.$store.state.resume
-      }
-    },
-    methods: {
-      // 保存编辑功能
-      save () {
-        // 提交命令：保存resume数据到后台
-        this.$store.dispatch('saveResume')
       }
     }
   }
@@ -88,16 +85,20 @@
 
 <style scoped lang="less">
   #resumePreview {
-    box-shadow: 0 1px 3px 0 rgba(0,0,0,0.25);
-    padding: 2em;
-    color: #333;
+    display: flex;
+    flex-direction: column;
+    padding: 1em;
+    height: 100%;
     background-color: #fff;
+    color: #333;
     line-height: 1.2;
     overflow: auto;
+
     * {
       font-variant: normal;
       font-weight: normal;
     }
+
     section + section {
       margin-top: 2em;
     }
@@ -112,10 +113,16 @@
         background: #ddd;
       }
     }
+    section[data-name="brief"] {
+      &>h1 {
+        margin: .1em 0;
+        font-size: 3em;
+      }
+    }
     section[data-name="profile"] {
       &>h1 {
         margin: .1em 0;
-        font-size: 4em;
+        font-size: 2em;
       }
     }
     section[data-name="workHistory"],

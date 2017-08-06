@@ -1,63 +1,86 @@
 <template>
   <div id="topBar">
-    <div class="wrapper">
-      <span class="logo">Resume</span>
-
+    <router-link class="logo" to="/">Resume</router-link>
+    <div class="layout">
+      <div class="btn-group">
+        <router-link class="btn-item" to="/">发现</router-link>
+      </div>
       <div class="actions">
         <div v-if="logined" class="userActions">
-          <span class="welcome">你好，{{user.username}}</span>
-          <a class="button" href="#" @click.prevent="signOut">登出</a>
+          <ul class="firstNav welcome">
+            <li>
+              <router-link class="welcome" to="/">
+                <span>你好，</span>
+                {{setting.nickname ? setting.nickname : user.username}}
+              </router-link>
+
+              <ul class="subNav">
+                <li>
+                  <router-link @click.native="enterCurIndex" to="manager">管理简历</router-link>
+                </li>
+                <li>
+                  <router-link to="setting">设置</router-link>
+                </li>
+                <li>
+                  <a href="#" @click.prevent="signOut">登出</a>
+                </li>
+              </ul>
+            </li>
+          </ul>
         </div>
         <div v-else class="userActions">
-          <a class="button primary" href="#" @click.prevent="signUpDialogVisible = true">注册</a>
-          <a class="button" href="#" @click.prevent="signInDialogVisible = true">登录</a>
+          <router-link class="sign primary" to="signUp">注册</router-link>
+          <router-link class="sign" to="signIn">登录</router-link>
         </div>
-        <MyDialog title="注册" :visible="signUpDialogVisible" @close="signUpDialogVisible = false">
-          <SignUpForm @success="signIn($event)"/>
-        </MyDialog>
-        <MyDialog title="登录" :visible="signInDialogVisible" @close="signInDialogVisible = false">
-          <SignInForm @success="signIn($event)"/>
-        </MyDialog>
       </div>
+    </div>
+    <div class="write">
+      <router-link class="button" @click.native="newResume"  to="editor">写简历</router-link>
     </div>
   </div>
 </template>
 
 <script>
-  import MyDialog from './MyDialog'
-  import SignUpForm from './SignUpForm'
-  import SignInForm from './SignInForm'
   import AV from '../lib/leancloud'
 
   export default {
-    name: 'TopBar',
-    data () {
-      return {
-        signUpDialogVisible: false,
-        signInDialogVisible: false
-      }
-    },
+    name: 'topBar',
     computed: {
       user () {
         return this.$store.state.user
       },
       logined () {
         return this.user.id
+      },
+      setting () {
+        return this.$store.state.resumeSet.setting
       }
     },
-    components: { MyDialog, SignUpForm, SignInForm },
     methods: {
-      // 用户登录：关闭注册或登录面板，提交保存用户信息功能
+      // 用户登录
       signIn (user) {
-        this.signUpDialogVisible = false
-        this.signInDialogVisible = false
         this.$store.commit('setUser', user)
       },
 
-      // 退出登录：提交命令退出登录
+      // 退出登录
       signOut () {
-        AV.User.logOut()
-        this.$store.commit('removeUser')
+        AV.User.logOut().then(() => {
+          this.$store.commit('removeUser')
+          this.$router.push('signIn')
+        })
+      },
+
+      // 新建简历
+      newResume () {
+        this.$store.commit('openResumeFlag')
+        this.$store.commit('initCurIndex')
+        this.$store.commit('initPool')
+        this.$store.commit('initEditor')
+      },
+
+      // 初始化 curIndex 值
+      enterCurIndex () {
+        this.$store.commit('enterCurIndex')
       }
     }
   }
@@ -69,19 +92,53 @@
     padding: 0 16px;
     background-color: #fff;
 
-    &>.wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    &>.logo {
+      position: relative;
+      top: -3px;
+      flex-grow: 1;
+      font-size: 24px;
+      color: #000;
+      text-decoration: none;
+    }
+    &>.write {
+      flex-grow: 1;
+      text-align: right;
+      &>.button {
+        border-radius: 5px;
+        width: 100px;
+        color: #fff;
+        background-color: #ea6f5a;
+      }
+    }
+    &>.layout {
       margin: 0 auto;
-      min-width: 1024px;
-      max-width: 1440px;
       height: 64px;
 
       display: flex;
       justify-content: space-between;
       align-items: center;
-    }
-    .logo {
-      font-size: 24px;
-      color: #000;
+
+      .btn-item {
+        padding: 0 8px;
+        color: #ea6f5a;
+        text-decoration: none;
+      }
+      .sign {
+        border: 1px #ea6f5a solid;
+        border-radius: 5px;
+        width: 72px;
+        height: 32px;
+        color: #ea6f5a;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        text-decoration: none;
+        cursor: pointer;
+      }
     }
     .btn {
       border: none;
@@ -104,11 +161,48 @@
     .actions {
       display: flex;
       .userActions {
-        /*margin-right: 3em;*/
         .welcome {
           margin-right: .5em;
         }
       }
+    }
+  }
+
+  .firstNav{
+    &>li {
+      position: relative;
+      &:hover {
+        background-color: #eee;
+        .subNav {
+          display: block;
+        }
+      }
+    }
+    .welcome {
+      padding: 0 1em;
+      height: 64px;
+      line-height: 64px;
+      &>span {
+        padding-right: 8px;
+      }
+    }
+  }
+  .subNav {
+    display: none;
+    position: absolute;
+    top: 64px;
+    left: 2px;
+    background-color: #fff;
+    box-shadow: 0 0 3px 1px #ccc;
+    a {
+      display: flex;
+      align-items: center;
+      padding: 6px 1em;
+      width: 100px;
+      height: 3em;
+    }
+    &>li:hover {
+      background-color: #eee;
     }
   }
 </style>

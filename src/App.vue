@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div id="app">
     <router-view></router-view>
   </div>
 </template>
@@ -16,9 +16,14 @@
 
   export default {
     name: 'app',
+    computed: {
+      record () {
+        return this.$store.state.resumeSet.id
+      }
+    },
     created () {
       // 提交命令：初始化 vuex 仓库
-      this.$store.commit('initState')
+      this.$store.commit('initEditor')
 
       // 获取当前登录用户
       let user = getAVUser()
@@ -30,19 +35,20 @@
         // 提交命令：与后台交互，获取 resume 数据
         this.$store.dispatch('fetchResume').then(() => {
           // 成功获取数据后，检查本地 resume 数据
-          this.restoreResumeFromLocalStorage()
+          // this.restoreResumeFromLocalStorage()
         })
-      } else {
-        this.restoreResumeFromLocalStorage()
       }
+      // else {
+      // this.restoreResumeFromLocalStorage()
+      // }
     },
     methods: {
-      // 获取 resume 本地数据
+      // 获取 resumeSet 本地数据
       restoreResumeFromLocalStorage () {
-        let resume = localStorage.getItem('resume')
-        if (resume) {
+        let resumeSet = localStorage.getItem('resumeSet')
+        if (resumeSet && (resumeSet.id === this.record)) {
           // 如果 resume 本地数据存在，提交命令：设置 resume 数据
-          this.$store.commit('setResume', JSON.parse(resume))
+          this.$store.commit('setResumeSet', resumeSet)
         }
       }
     }
