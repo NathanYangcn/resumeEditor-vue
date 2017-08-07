@@ -3,7 +3,7 @@
     <ol class="subject">
       <li v-for="(value, key) in resume.brief" v-show="key === 'title'">
         <nav>标题</nav>
-        <input type="text" :value="value" @input="changeResumeTitle(key, $event.target.value)">
+        <input type="text" placeholder="无标题简历" :value="value" @input="changeResumeTitle(key, $event.target.value)">
       </li>
     </ol>
 
